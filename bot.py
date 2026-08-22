@@ -45,13 +45,16 @@ async def cmd_start(message: Message):
     await db.upsert_user(message.from_user.id, message.from_user.username or "",
                           message.from_user.full_name)
     await message.answer(
-        "Assalomu alaykum! ⭐️\n\n"
-        "Bu bot orqali <b>Telegram Stars</b>ni so'mda (UZS) sotib olishingiz mumkin.\n\n"
-        "1️⃣ Paket tanlaysiz\n"
-        "2️⃣ Ko'rsatilgan kartaga to'lov qilasiz\n"
-        "3️⃣ To'lov chekini (screenshot) yuborasiz\n"
-        "4️⃣ Admin tasdiqlagach, stars hisobingizga yuboriladi\n\n"
-        "Quyidagi menyudan foydalaning:",
+        f"✨ <b>Assalomu alaykum, {message.from_user.first_name}!</b> ⭐️\n\n"
+        "Bu bot orqali <b>Telegram Stars</b>ni so'mda (UZS) qulay va tez sotib olishingiz mumkin.\n\n"
+        "━━━━━━━━━━━━━━━\n"
+        "🛍 <b>Qanday ishlaydi?</b>\n"
+        "━━━━━━━━━━━━━━━\n\n"
+        "1️⃣  Kerakli paketni tanlaysiz\n"
+        "2️⃣  Ko'rsatilgan kartaga to'lov qilasiz\n"
+        "3️⃣  To'lov chekini (screenshot) yuborasiz\n"
+        "4️⃣  Admin tasdiqlaydi va ⭐ hisobingizga tushadi\n\n"
+        "👇 <i>Quyidagi menyudan boshlang:</i>",
         reply_markup=kb.main_menu_kb(),
         parse_mode="HTML",
     )
