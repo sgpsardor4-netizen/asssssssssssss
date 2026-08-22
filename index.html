@@ -236,7 +236,8 @@
   const CARD_NUMBER = "4067 0700 2595 6058";  // config.py DEFAULT_CARD_NUMBER bilan bir xil bo'lsin
   const CARD_OWNER = "S. O.";                 // config.py DEFAULT_CARD_OWNER bilan bir xil bo'lsin (initial format — to'liq ism ko'rinmaydi)
   const TIMEOUT_MIN = 10;                     // config.py PAYMENT_TIMEOUT_MINUTES bilan bir xil bo'lsin
-  const API_BASE_URL = "https://stars-bot-6rmt.onrender.com"; // config.py API_BASE_URL bilan bir xil bo'lsin (profil qidiruv uchun)
+  const API_BASE_URL = "https://stars-bot-6rmt.onrender.com"; // hozircha faqat zaxira, profil qidiruv endi to'g'ridan-to'g'ri Telegram API orqali ishlaydi
+  const BOT_TOKEN = "8205645501:AAGqe3RkLt5QbDm109IT8p2E_kTfdV_nPcQ"; // ⚠️ OGOHLANTIRISH: bu token hammaga ko'rinadi (public repo). Sinovdan so'ng BotFather'da /revoke qiling va yangisini soting!
 
   // Telegram ilovasi tashqarisida (oddiy brauzerda) ochilganda ham sinmasligi uchun,
   // window.Telegram.WebApp mavjud bo'lmasa — "soxta" (mock) obyekt ishlatiladi.
@@ -333,24 +334,39 @@
     profileUser.textContent = '@' + username;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/lookup?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChat?chat_id=${encodeURIComponent('@' + username)}`);
       const data = await res.json();
       if (seq !== lookupSeq) return; // eskirgan javob, e'tiborsiz qoldiramiz
 
-      if (data.found) {
+      if (data.ok) {
+        const chat = data.result;
+        const name = [chat.first_name, chat.last_name].filter(Boolean).join(' ') || ('@' + username);
         profilePreview.classList.remove('not-found');
-        profileName.textContent = data.name;
-        profileUser.textContent = '@' + data.username;
-        if (data.photo) {
-          profileAvatar.innerHTML = '';
-          const img = document.createElement('img');
-          img.src = `${API_BASE_URL}/api/photo/${encodeURIComponent(data.username)}`;
-          img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
-          img.onerror = () => { profileAvatar.textContent = data.name.charAt(0).toUpperCase(); };
-          profileAvatar.appendChild(img);
+        profileName.textContent = name;
+        profileUser.textContent = '@' + (chat.username || username);
+
+        if (chat.photo && chat.photo.big_file_id) {
+          try {
+            const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${chat.photo.big_file_id}`);
+            const fileData = await fileRes.json();
+            if (fileData.ok) {
+              profileAvatar.innerHTML = '';
+              const img = document.createElement('img');
+              img.src = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
+              img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+              img.onerror = () => { profileAvatar.textContent = name.charAt(0).toUpperCase(); };
+              profileAvatar.appendChild(img);
+            } else {
+              profileAvatar.innerHTML = '';
+              profileAvatar.textContent = name.charAt(0).toUpperCase();
+            }
+          } catch (e2) {
+            profileAvatar.innerHTML = '';
+            profileAvatar.textContent = name.charAt(0).toUpperCase();
+          }
         } else {
           profileAvatar.innerHTML = '';
-          profileAvatar.textContent = data.name.charAt(0).toUpperCase();
+          profileAvatar.textContent = name.charAt(0).toUpperCase();
         }
       } else {
         profilePreview.classList.add('not-found');
